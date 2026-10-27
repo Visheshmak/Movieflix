@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MovieFlix: browse popular movies and search the TMDB catalogue." />
+    <link rel="stylesheet" href="style.css" />
+    <title>MovieFlix</title>
+  </head>
+  <body>
+    <header class="logo-header">
+      <div class="logo">🎬 MovieFlix</div>
+    </header>
+
+    <header>
+      <form id="form">
+        <input type="text" id="search" class="search" placeholder="Search for a movie..." aria-label="Search movies" />
+      </form>
+    </header>
+
+    <button id="themeToggle">🌙 Toggle Theme</button>
+
+    <div id="loader" class="loader hidden">Loading...</div>
+
+    <main id="main"></main>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
