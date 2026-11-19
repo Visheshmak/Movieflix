@@ -1,6 +1,7 @@
-const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1'
+const API_URL = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${TMDB_API_KEY}&page=1`
 const IMG_PATH = 'https://image.tmdb.org/t/p/w1280'
-const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="'
+const SEARCH_API = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=`
+const NO_POSTER = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750"><rect width="100%" height="100%" fill="%23222"/><text x="50%" y="50%" fill="%23aaa" font-size="36" text-anchor="middle" font-family="sans-serif">No poster</text></svg>')
 
 const main = document.getElementById('main')
 const form = document.getElementById('form')
@@ -12,12 +13,18 @@ const themeToggle = document.getElementById('themeToggle')
 getMovies(API_URL)
 
 async function getMovies(url) {
-    loader.classList.remove('hidden') // Show loader
-    const res = await fetch(url)
-    const data = await res.json()
-    loader.classList.add('hidden') // Hide loader
-
-    showMovies(data.results)
+    loader.classList.remove('hidden')
+    try {
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`TMDB request failed: ${res.status}`)
+        const data = await res.json()
+        showMovies(data.results || [])
+    } catch (err) {
+        console.error(err)
+        main.innerHTML = '<h2>Could not load movies. Please try again later.</h2>'
+    } finally {
+        loader.classList.add('hidden')
+    }
 }
 
 function showMovies(movies) {
@@ -35,19 +42,22 @@ function showMovies(movies) {
         movieEl.classList.add('movie')
 
         movieEl.innerHTML = `
-            <img src="${IMG_PATH + poster_path}" alt="${title}">
+            <img src="${poster_path ? IMG_PATH + poster_path : NO_POSTER}" alt="">
             <div class="movie-info">
-                <h3>${title}</h3>
+                <h3></h3>
                 <span class="${getClassByRate(vote_average)}">${vote_average}</span>
             </div>
             <div class="stars">${getStars(vote_average)}</div>
             <div class="overview">
                 <h3>Overview</h3>
-                ${overview}
-                <br/>
-                <button onclick="watchTrailer('${title}')">▶ Watch Trailer</button>
+                <p></p>
+                <button type="button">▶ Watch Trailer</button>
             </div>
         `
+        movieEl.querySelector('img').alt = title
+        movieEl.querySelector('.movie-info h3').textContent = title
+        movieEl.querySelector('.overview p').textContent = overview
+        movieEl.querySelector('.overview button').addEventListener('click', () => watchTrailer(title))
         main.appendChild(movieEl)
     })
 }
@@ -78,7 +88,7 @@ form.addEventListener('submit', (e) => {
     const searchTerm = search.value
 
     if (searchTerm && searchTerm !== '') {
-        getMovies(SEARCH_API + searchTerm)
+        getMovies(SEARCH_API + encodeURIComponent(searchTerm))
         search.value = ''
     } else {
         window.location.reload()
